@@ -11,8 +11,8 @@ const CLAVE = 'cambia-esta-clave';
 
 const HOJA = 'Lugares';
 const CARPETA = 'Nuestros lugares (fotos)';
-const COLS = ['id', 'name', 'zone', 'date', 'status', 'fav', 'tipo', 'dist', 'src', 'fileId', 'mime', 'created'];
-const EDITABLES = ['name', 'zone', 'date', 'status', 'fav', 'tipo', 'dist', 'src'];
+const COLS = ['id', 'name', 'zone', 'date', 'status', 'fav', 'tipo', 'dist', 'src', 'fileId', 'mime', 'created', 'cita'];
+const EDITABLES = ['name', 'zone', 'date', 'status', 'fav', 'tipo', 'dist', 'src', 'cita'];
 const MAX_BYTES = 30 * 1024 * 1024;
 
 function doGet() {
@@ -72,11 +72,20 @@ function claveOk_(c) {
 function hoja_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName(HOJA);
+  if (sh) {
+    // hoja creada con una versión anterior: agrega las columnas nuevas (p. ej. "cita")
+    var enc = sh.getRange(1, 1, 1, COLS.length).getValues()[0];
+    if (enc.join('|') !== COLS.join('|')) {
+      sh.getRange(1, 1, 1, COLS.length).setValues([COLS]);
+      sh.getRange(1, COLS.indexOf('cita') + 1, sh.getMaxRows(), 1).setNumberFormat('@');
+    }
+  }
   if (!sh) {
     sh = ss.insertSheet(HOJA);
     sh.getRange(1, 1, 1, COLS.length).setValues([COLS]);
     sh.setFrozenRows(1);
     sh.getRange(1, 4, sh.getMaxRows(), 1).setNumberFormat('@'); // columna "date" como texto
+    sh.getRange(1, COLS.indexOf('cita') + 1, sh.getMaxRows(), 1).setNumberFormat('@'); // "cita" como texto (ej. "2,14")
   }
   return sh;
 }
@@ -92,7 +101,7 @@ function aObjeto_(v) {
   o.date = fecha_(o.date);
   o.fav = o.fav === true || String(o.fav).toLowerCase() === 'true';
   o.created = o.created instanceof Date ? o.created.toISOString() : String(o.created || '');
-  ['id', 'name', 'zone', 'status', 'tipo', 'dist', 'src', 'fileId', 'mime'].forEach(function (c) {
+  ['id', 'name', 'zone', 'status', 'tipo', 'dist', 'src', 'fileId', 'mime', 'cita'].forEach(function (c) {
     o[c] = o[c] == null ? '' : String(o[c]);
   });
   return o;
@@ -118,6 +127,7 @@ function buscarFila_(id) {
 function escribirFila_(fila, valores) {
   var sh = hoja_();
   sh.getRange(fila, 4).setNumberFormat('@');
+  sh.getRange(fila, COLS.indexOf('cita') + 1).setNumberFormat('@');
   sh.getRange(fila, 1, 1, COLS.length).setValues([valores]);
 }
 
@@ -126,6 +136,13 @@ function limpiar_(k, v) {
   v = v == null ? '' : String(v).trim();
   if (k === 'status') return v === 'plan' ? 'plan' : 'vis';
   if (k === 'date') return /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : '';
+  if (k === 'cita') {
+    var vistos = {};
+    return v.split(',').map(function (x) { return Number(x); }).filter(function (n) {
+      if (!(n >= 1 && n <= 100 && n === Math.floor(n)) || vistos[n]) return false;
+      vistos[n] = true; return true;
+    }).join(',');
+  }
   if (k === 'src') return /^https?:\/\//i.test(v) ? v.slice(0, 500) : '';
   return v.slice(0, 200);
 }

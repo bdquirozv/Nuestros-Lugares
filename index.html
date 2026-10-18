@@ -85,17 +85,29 @@ form,.card,.mapbox,input,select,button,.file{border-radius:3px!important}
 .bar button{font-size:13px!important}
 input[type=password],input[type=url]{width:100%;padding:11px;border:1px solid var(--bd);background:var(--bg);color:var(--tx)}
 .dlg input[type=text],.dlg input[type=date],.dlg select{width:100%}
+.tabs{flex-wrap:wrap}.tabs button{flex:1 1 30%}
+.cbig{text-align:center;padding:14px 10px 12px}.cbig b{font-size:54px;font-weight:700;line-height:1;font-family:'Cormorant Garamond',Georgia,serif!important;color:var(--ac)}.cbig span{font-size:22px;color:var(--mu)}
+.cl{display:grid;gap:6px}
+.ci{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--bd);padding:9px 11px;cursor:pointer;border-radius:3px}
+.ci .no{min-width:36px;height:36px;border-radius:50%!important;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:1.5px solid var(--bd);color:var(--mu)}
+.ci.done .no{background:var(--ac);border-color:var(--ac);color:#fff}
+.ci.own .no{border-style:dashed;border-color:var(--pl);color:var(--pl)}
+.ci.own.done .no{background:var(--pl);border-style:solid;color:#fff}
+.ci .tx{flex:1;font-size:14px;line-height:1.3}.ci small{display:block;color:var(--mu);font-size:12px;margin-top:2px}
+.badge{display:inline-block;font-size:11px;background:var(--bg);border:1px solid var(--bd);padding:2px 8px;border-radius:99px!important;margin:5px 4px 0 0;color:var(--ac);font-weight:600}
+.badge.pl{color:var(--pl)}
+.dlg .row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px}.dlg .row button{padding:6px 10px;font-size:12px;background:var(--bd);color:var(--tx)}
 </style></head><body><main>
 <h1>Nuestros lugares 💕</h1>
 <p class="sub">Lo que ya visitamos, lo que queremos visitar y qué nos falta por conocer.</p>
 <div class="prog"><div class="pbar"><i id="pfill"></i></div><div class="ptxt" id="ptxt"></div></div>
-<div class="tabs" id="tabs"><button data-t="vis" class="on">📸 Visitados</button><button data-t="plan">🧭 Por visitar</button><button data-t="map">🗺️ Mapa</button><button data-t="games">🎲 Juegos</button></div>
+<div class="tabs" id="tabs"><button data-t="vis" class="on">📸 Visitados</button><button data-t="plan">🧭 Por visitar</button><button data-t="map">🗺️ Mapa</button><button data-t="games">🎲 Juegos</button><button data-t="citas">💯 100 citas</button></div>
 
 <form id="f">
  <label class="file"><span id="hint">📷 Toca para elegir una foto o video</span><input id="photo" type="file" accept="image/*,video/*" hidden></label>
  <input id="name" type="text" placeholder="Nombre del lugar" required>
  <div class="l">Zona (para el mapa)</div><select id="zone" required></select>
- <div id="planf" hidden><div class="row2"><div><div class="l">Tipo de plan</div><select id="tipo"></select></div><div><div class="l">¿Qué tan cerca?</div><select id="dist"></select></div></div></div>
+ <div id="planf" hidden><div class="row2"><div><div class="l">Tipo de plan</div><select id="tipo"></select></div><div><div class="l">¿Qué tan cerca?</div><select id="dist"></select></div></div><div class="l">¿Será una de nuestras 100 citas? (opcional)</div><select id="cita"></select></div>
  <div class="l" id="dl">Fecha de la salida</div><input id="date" type="date">
  <div class="l">¿De dónde sacamos la idea? (opcional)</div><input id="src" type="text" inputmode="url" placeholder="Link de TikTok, Instagram…">
  <button class="go" id="go" type="submit">Guardar lugar</button>
@@ -111,6 +123,12 @@ input[type=password],input[type=url]{width:100%;padding:11px;border:1px solid va
   <div class="leg"><span><i style="background:var(--ac)"></i>Visitado (más oscuro = más veces)</span><span><i style="border:2px dashed var(--pl)"></i>Por visitar</span><span><i style="background:var(--bd)"></i>Sin visitar</span></div>
   <div class="tip" id="tip">Toca un punto para ver el detalle.</div></div>
  <h3 id="missT"></h3><div class="chips" id="miss"></div>
+</div>
+<div id="citasview" hidden>
+ <div class="mapbox cbig"><b id="cn">0</b><span> / 100</span><div class="d" id="cd"></div></div>
+ <div class="bar" id="cbar"><button data-cv="all" class="on">Todas</button><button data-cv="todo">Pendientes</button><button data-cv="done">✓ Hechas</button><button data-cv="own">💡 Nuestras</button></div>
+ <div class="cl" id="clist"></div>
+ <p class="note">Las citas 1–80 se completan solas cuando suben una salida parecida. Las 81–100 son suyas: elíjanlas desde 🧭 Por visitar.</p>
 </div>
 <div id="gamesview" hidden>
  <div class="bar" style="margin-top:0" id="gmode"><button data-g="plan" class="on">🎡 Plan</button><button data-g="tipo">🎯 Tipo</button><button data-g="reto">🎲 Reto</button></div>
@@ -168,7 +186,7 @@ function renderList(){
   var img=hasMedia(p)?mediaHtml(p,800):'<div class="ph" data-late="'+p.id+'">'+(tab==='plan'?'📍':'📷<small>Toca para agregar foto</small>')+'</div>';
   var sub=[p.zone,p.date?(tab==='plan'?'Tentativo: ':'')+fmt(p.date):''].filter(Boolean).map(esc).join(' · ');
   var b=tab==='plan'?'<button class="ico ok" title="Ya fuimos" data-ok="'+p.id+'">✓</button>':'<button class="ico'+(p.fav?' fav':'')+'" data-f="'+p.id+'">'+(p.fav?'♥':'♡')+'</button>';
-  return '<div class="card">'+img+'<div class="info"><div><div class="n">'+esc(p.name)+'</div><div class="d">'+sub+'</div>'+srcLink(p)+'</div><div style="white-space:nowrap">'+b+'<button class="ico ed" data-e="'+p.id+'">✏️</button><button class="ico" data-x="'+p.id+'">🗑</button></div></div>'+(tab==='plan'?'<div class="mini"><select data-mt="'+p.id+'">'+opts(TIPOS,p.tipo,'Tipo…')+'</select><select data-md="'+p.id+'">'+opts(DIST,p.dist,'Distancia…')+'</select></div>':'')+'</div>'}).join('');
+  return '<div class="card">'+img+'<div class="info"><div><div class="n">'+esc(p.name)+'</div><div class="d">'+sub+'</div>'+srcLink(p)+citaBadge(p)+'</div><div style="white-space:nowrap">'+b+'<button class="ico ed" data-e="'+p.id+'">✏️</button><button class="ico" data-x="'+p.id+'">🗑</button></div></div>'+(tab==='plan'?'<div class="mini"><select data-mt="'+p.id+'">'+opts(TIPOS,p.tipo,'Tipo…')+'</select><select data-md="'+p.id+'">'+opts(DIST,p.dist,'Distancia…')+'</select></div>':'')+'</div>'}).join('');
 }
 
 function renderMap(){
@@ -216,17 +234,17 @@ function renderMap(){
  $('miss').innerHTML=miss.map(function(n){return '<button class="chip" data-plan="'+esc(n)+'">'+esc(n)+'</button>'}).join('');
 }
 function render(){
- var m=tab==='map',g=tab==='games';
- $('f').hidden=m||g;$('listbox').hidden=m||g;$('mapview').hidden=!m;$('gamesview').hidden=!g;$('bar').hidden=tab!=='vis';
+ var m=tab==='map',g=tab==='games',c=tab==='citas';
+ $('f').hidden=m||g||c;$('listbox').hidden=m||g||c;$('mapview').hidden=!m;$('gamesview').hidden=!g;$('citasview').hidden=!c;$('bar').hidden=tab!=='vis';
  document.body.className=tab==='plan'?'pl':'';
  [].forEach.call($('tabs').children,function(b){b.className=b.dataset.t===tab?'on':''});
- if(m)renderMap();else if(g){if(spinning)drawWheel();else renderGames(false)}else{
+ if(m)renderMap();else if(g){if(spinning)drawWheel();else renderGames(false)}else if(c)renderCitas();else{
   $('hint').firstChild&&0;
   $('planf').hidden=tab!=='plan';$('tipo').required=tab==='plan';$('dist').required=tab==='plan';
   $('dl').textContent=tab==='plan'?'Fecha tentativa (opcional)':'Fecha de la salida';
   $('go').textContent=tab==='plan'?'Guardar plan':'Guardar lugar';
   if(!file)$('hint').textContent=tab==='plan'?'🖼️ Foto de referencia (opcional)':'📷 Toca para elegir una foto o video';
-  renderList();
+  renderList();fillCita();
  }
 }
 $('tabs').onclick=function(e){var t=e.target.dataset.t;if(!t)return;tab=t;if(t==='plan')$('date').value='';else if(!$('date').value)$('date').value=today();render()};
@@ -262,12 +280,12 @@ $('f').onsubmit=async function(e){
  e.preventDefault();
  if(tab==='vis'&&!file){alert('Elige una foto o video primero');return}
  $('go').disabled=true;$('go').textContent='Subiendo…';
- var rec={name:$('name').value.trim(),zone:$('zone').value,date:$('date').value,status:tab,fav:false,tipo:tab==='plan'?$('tipo').value:'',dist:tab==='plan'?$('dist').value:'',src:normSrc($('src').value)};
+ var rec={name:$('name').value.trim(),zone:$('zone').value,date:$('date').value,status:tab,fav:false,tipo:tab==='plan'?$('tipo').value:'',dist:tab==='plan'?$('dist').value:'',src:normSrc($('src').value),cita:tab==='plan'?$('cita').value:''};
  try{
   var fo=file?await prep(file):null;
   if(live){var r=await api('create',{rec:rec,file:fo});merge(r.row)}
   else{rec.id='l'+Date.now();if(file){rec.url=URL.createObjectURL(file);rec.mime=file.type}places.push(rec);render()}
-  $('f').reset();file=null;$('date').value=tab==='plan'?'':today();$('hint').textContent=tab==='plan'?'🖼️ Foto de referencia (opcional)':'📷 Toca para elegir una foto o video';
+  $('f').reset();file=null;fillCita();$('date').value=tab==='plan'?'':today();$('hint').textContent=tab==='plan'?'🖼️ Foto de referencia (opcional)':'📷 Toca para elegir una foto o video';
  }catch(err){alert('No se pudo guardar: '+(err&&err.message||err))}
  $('go').disabled=false;$('go').textContent=tab==='plan'?'Guardar plan':'Guardar lugar';
 };
@@ -362,7 +380,7 @@ function srcLink(p){
  var l=h.indexOf('tiktok')>=0?'🎵 TikTok':h.indexOf('instagram')>=0?'📸 Instagram':(h.indexOf('youtu')>=0)?'▶️ YouTube':(h.indexOf('facebook')>=0||h.indexOf('fb.')>=0)?'👥 Facebook':'🔗 '+esc(h||'Enlace');
  return '<a class="srcl" href="'+esc(u)+'" target="_blank" rel="noopener noreferrer">'+l+'</a>';
 }
-function updProg(){var n=places.filter(function(p){return st(p)==='vis'}).length;$('pfill').style.width=Math.min(100,n)+'%';$('ptxt').textContent=n>=100?'🎉 ¡Completaron las 100 citas!':n+' de 100 citas · faltan '+(100-n)}
+function updProg(){var n=citaInfo().filter(function(x){return x.done}).length;$('pfill').style.width=n+'%';$('ptxt').textContent=n>=100?'🎉 ¡Completaron las 100 citas!':n+' de 100 citas · faltan '+(100-n)}
 
 /* ----- fotos y videos ----- */
 function thumb(id,w){return 'https://drive.google.com/thumbnail?id='+encodeURIComponent(id)+'&sz=w'+w}
@@ -443,14 +461,14 @@ function askLogin(msg){
 function openEdit(id){
  var p=places.filter(function(q){return q.id===id})[0];if(!p)return;
  var plan=st(p)==='plan';
- ov('<h3>Editar '+(plan?'plan':'lugar')+'</h3><input id="e_name" type="text" value="'+esc(p.name)+'"><div class="l">Zona</div><select id="e_zone"></select><div class="l">Fecha'+(plan?' tentativa (opcional)':' de la salida')+'</div><input id="e_date" type="date" value="'+esc(p.date||'')+'">'+(plan?'<div class="row2"><div><div class="l">Tipo</div><select id="e_tipo"></select></div><div><div class="l">¿Qué tan cerca?</div><select id="e_dist"></select></div></div>':'')+'<div class="l">¿De dónde sacamos la idea? (opcional)</div><input id="e_src" type="text" inputmode="url" value="'+esc(p.src||'')+'" placeholder="Link de TikTok, Instagram…"><div class="l">Cambiar foto o video (opcional)</div><input id="e_photo" type="file" accept="image/*,video/*"><div class="row2"><button type="button" id="e_c" style="background:var(--bd);color:var(--tx)">Cancelar</button><button type="button" id="e_ok">Guardar</button></div>');
+ ov('<h3>Editar '+(plan?'plan':'lugar')+'</h3><input id="e_name" type="text" value="'+esc(p.name)+'"><div class="l">Zona</div><select id="e_zone"></select><div class="l">Fecha'+(plan?' tentativa (opcional)':' de la salida')+'</div><input id="e_date" type="date" value="'+esc(p.date||'')+'">'+(plan?'<div class="row2"><div><div class="l">Tipo</div><select id="e_tipo"></select></div><div><div class="l">¿Qué tan cerca?</div><select id="e_dist"></select></div></div><div class="l">¿Una de nuestras 100 citas?</div><select id="e_cita"></select>':'')+'<div class="l">¿De dónde sacamos la idea? (opcional)</div><input id="e_src" type="text" inputmode="url" value="'+esc(p.src||'')+'" placeholder="Link de TikTok, Instagram…"><div class="l">Cambiar foto o video (opcional)</div><input id="e_photo" type="file" accept="image/*,video/*"><div class="row2"><button type="button" id="e_c" style="background:var(--bd);color:var(--tx)">Cancelar</button><button type="button" id="e_ok">Guardar</button></div>');
  $('e_zone').innerHTML=$('zone').innerHTML;$('e_zone').value=p.zone||'';
- if(plan){$('e_tipo').innerHTML=opts(TIPOS,p.tipo,'Elige…');$('e_dist').innerHTML=opts(DIST,p.dist,'Elige…')}
+ if(plan){$('e_tipo').innerHTML=opts(TIPOS,p.tipo,'Elige…');$('e_dist').innerHTML=opts(DIST,p.dist,'Elige…');$('e_cita').innerHTML=citaOpts(p.id,citasOf(p).filter(function(n){return n>80})[0])}
  $('e_c').onclick=closeOv;
  $('e_ok').onclick=async function(){
   var nm=$('e_name').value.trim();if(!nm){alert('Ponle un nombre');return}
   var patch={name:nm,zone:$('e_zone').value,date:$('e_date').value,src:normSrc($('e_src').value)};
-  if(plan){patch.tipo=$('e_tipo').value;patch.dist=$('e_dist').value}
+  if(plan){patch.tipo=$('e_tipo').value;patch.dist=$('e_dist').value;patch.cita=citasOf(p).filter(function(n){return n<=80}).concat($('e_cita').value?[+$('e_cita').value]:[]).join(',')}
   $('e_ok').disabled=true;$('e_ok').textContent='Guardando…';
   try{
    var f=$('e_photo').files[0],fo=f?await prep(f):null;
@@ -490,6 +508,167 @@ $('rroll').onclick=function(){
  var t=setInterval(function(){$('rdie').textContent=f[k++%6]},90);
  setTimeout(function(){clearInterval(t);if(!rbag.length)rbag=RETOS.slice().sort(function(){return Math.random()-.5});$('rdie').textContent=f[Math.floor(Math.random()*6)];$('rtxt').textContent=rbag.pop();rbusy=false},1200);
 };
+
+/* ----- 100 citas ----- */
+var IDEAS=[
+['Ir al cine a ver una película','cine|pelicula|cinemark|cineplanet|cinepolis'],
+['Cenar en una pizzería clásica','pizz'],
+['Ver el atardecer frente al mar','atardecer|costa verde|malecon|puesta de sol'],
+['Hacer un picnic','picnic'],
+['Comer un buen ceviche','cevich'],
+['Tomar un helado paseando','helad'],
+['Visitar un museo','museo'],
+['Ir a un parque de diversiones','diversiones|fantasilandia|juegos mecanicos'],
+['Pasear por un boulevard o calle peatonal','boulevard|peatonal|pasaje|bajada'],
+['Probar un café de especialidad','cafe|cafeteria|coffee'],
+['Ir a una feria gastronómica','feria gastronomica|mistura|gastronom'],
+['Pasar el día en la playa','playa'],
+['Maratón de películas en casa con snacks',''],
+['Cocinar juntos una receta nueva','cocinamos|cocinar|receta'],
+['Salir a bailar','bailar|discoteca|baile|salsa|pena!'],
+['Cantar en un karaoke','karaoke'],
+['Jugar bolos','bolos|bowling'],
+['Subir a un mirador','mirador'],
+['Pasear por el Centro Histórico de Lima','centro historico|centro de lima|plaza de armas|plaza san martin|catedral'],
+['Ir a un concierto','concierto|festival'],
+['Ver una obra de teatro','teatro|obra de'],
+['Probar comida de otro país','japones|china|chifa|italian|mexican|coreana|thai|tailandes|hindu|arabe|frances'],
+['Desayunar o hacer brunch','desayuno|brunch'],
+['Comer anticuchos o comida callejera','anticucho|callejera|carretilla|salchipapa'],
+['Visitar un zoológico o parque de animales','zoo|leyendas|huachipa|animales'],
+['Pasar por una librería y regalarse un libro','libreria|libro|crisol'],
+['Ir a una galería o exposición de arte','galeria|exposicion|mali|arte!'],
+['Pasear en bicicleta','bicicleta|bici!|ciclovia'],
+['Hacer una caminata por un cerro o sendero','caminata|senderismo|trekking|hike|cerro'],
+['Viaje a otra ciudad del Perú','','out'],
+['Ir a una piscina o parque acuático','piscina|acuatico|aquapark'],
+['Comer un postre especial','postre|torta|churro|keke|pastel|brownie|crepa|waffle'],
+['Cenar en un lugar con vista','vista|rooftop|terraza'],
+['Hacer una sesión de fotos de pareja','foto|sesion'],
+['Ver un partido en el estadio','estadio|partido|futbol|voley'],
+['Tomar una clase o taller juntos','clase|taller|curso'],
+['Ir al mercado y comprar para cocinar','mercado'],
+['Descubrir un parque nuevo','parque|olivar|kennedy|reserva'],
+['Probar cócteles o pisco en un bar','bar!|bares|cocktel|coctel|pisco|trago|pub!|cantina'],
+['Comer pollo a la brasa','brasa|polleria|pollo'],
+['Ir a una chocolatería','chocolat'],
+['Ver el Circuito Mágico del Agua','circuito magico|magico del agua|fuentes'],
+['Recorrer una feria de artesanías','artesania|feria'],
+['Pasar un día entero sin celulares',''],
+['Escribirnos una carta de amor',''],
+['Ver las estrellas de noche','estrellas|astronom|observatorio'],
+['Ir a un autocine o cine al aire libre','autocine|cine al aire|aire libre'],
+['Visitar una huaca o sitio arqueológico','huaca|pucllana|pachacamac|arqueolog|caral|machu|ollantay|sacsayhuaman|sillustani'],
+['Jugar juegos de mesa o videojuegos','juegos de mesa|videojuego|arcade|gamer|cartas'],
+['Resolver un escape room','escape'],
+['Hacer una actividad de aventura','karting|kart!|tirolesa|aventura|paintball|trampolin|parapente|canopy'],
+['Subir a una rueda gigante','rueda|noria'],
+['Pasear en bote o hacer paddle','bote|kayak|paddle|lancha|velero|yate'],
+['Hacer deporte juntos','surf|yoga|escalada|escalar|gimnasio|deporte|running|correr|padel'],
+['Ir a un spa o hacerse masajes','spa!|masaje'],
+['Pasar una noche en un hotel o cabaña','hotel|cabana|bungalow|hostal|airbnb|hospedaje'],
+['Ver un amanecer juntos','amanecer'],
+['Preparar un desayuno sorpresa',''],
+['Ir de compras y elegirse un outfit','compras|mall|jockey|larcomar|megaplaza|plaza norte|ropa|tienda'],
+['Hacer una escapada cerca de Lima','chosica|cieneguilla|lunahuana|huaral|canta!|paracas|huacachina|barranca|canete|ica!|chancay|huaycan|chilca'],
+['Visitar una cascada o laguna','cascada|laguna|catarata|poza'],
+['Ver stand-up o comedia','stand|comedia|humor'],
+['Cena romántica a la luz de las velas en casa',''],
+['Probar dulces típicos peruanos','picaron|mazamorra|suspiro|turron|alfajor|king kong|machacado'],
+['Probar un plato que ninguno haya comido antes',''],
+['Ver nuestra película favorita de la infancia',''],
+['Visitar una cafetería con mascotas','gatos|mascota|perros|petshop'],
+['Ir a una feria del libro','feria del libro|fil lima'],
+['Pasear por un barrio bohemio','barranco|puente de los suspiros|bohemio'],
+['Hacer turismo como turistas en nuestra ciudad','tour|free walking|turistico'],
+['Hacer un voluntariado juntos','voluntariado|donacion|albergue'],
+['Armar un álbum de nuestras salidas',''],
+['Pasear de noche por la ciudad iluminada','nocturno|de noche'],
+['Columpiarse en un parque como niños',''],
+['Ir a una cata de vino, pisco o café','cata|vino|pisqueria|degustacion'],
+['Probar sushi o comida nikkei','sushi|nikkei|maki|ramen'],
+['Pintar o hacer cerámica juntos','ceramica|pintura|pintar|alfareria'],
+['Ver fuegos artificiales o un show de luces','fuegos|pirotecnico|luces'],
+['Ver la montaña o la nieve','nevado|nieve|montana|cordillera|ticlio'],
+['Celebrar algo con una cena especial','cumpleanos|aniversario|celebracion']
+];
+if(IDEAS.length!==80)throw new Error('IDEAS debe tener 80, tiene '+IDEAS.length);
+function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'')}
+function kwx(id){if(!id.rx)id.rx=(id[1]||'').split('|').filter(Boolean).map(function(k){var ex=k.slice(-1)==='!';if(ex)k=k.slice(0,-1);return new RegExp('(^|[^a-z0-9])'+k+(ex?'($|[^a-z0-9])':''))});return id.rx}
+function autoHit(p,id){if(id[2]==='out')return !!p.zone&&!isL(p.zone);var s=norm(p.name);return kwx(id).some(function(r){return r.test(s)})}
+function citasOf(p){return String(p.cita==null?'':p.cita).split(',').map(Number).filter(function(n){return n>=1&&n<=100&&n===Math.floor(n)})}
+function citaInfo(){
+ var vis=places.filter(function(p){return st(p)==='vis'}),out=[];
+ for(var n=1;n<=100;n++){
+  if(n<=80){
+   var id=IDEAS[n-1],m=[],man=[];
+   vis.forEach(function(p){if(citasOf(p).indexOf(n)>=0){m.push(p);man.push(p)}else if(autoHit(p,id))m.push(p)});
+   out.push({n:n,text:id[0],done:m.length>0,places:m,manual:man,own:false});
+  }else{
+   var pl=places.filter(function(p){return citasOf(p).indexOf(n)>=0})[0]||null;
+   out.push({n:n,text:pl?pl.name:'Una idea nuestra',own:true,place:pl,done:!!pl&&st(pl)==='vis',places:pl?[pl]:[],manual:[]});
+  }
+ }
+ return out;
+}
+function citaBadge(p){
+ var nums=citasOf(p);
+ if(st(p)==='vis'){IDEAS.forEach(function(id,i){if(nums.indexOf(i+1)<0&&autoHit(p,id))nums.push(i+1)})}
+ nums.sort(function(a,b){return a-b});
+ if(!nums.length)return '';
+ var s=st(p)==='plan';
+ return '<div>'+nums.slice(0,6).map(function(n){return '<span class="badge'+(s?' pl':'')+'">💯 Cita #'+n+'</span>'}).join('')+(nums.length>6?'<span class="badge">+'+(nums.length-6)+'</span>':'')+'</div>';
+}
+function citaOpts(exceptId,sel){
+ var s='<option value="">No, es un plan normal</option>';
+ for(var n=81;n<=100;n++){
+  var taken=places.some(function(p){return p.id!==exceptId&&citasOf(p).indexOf(n)>=0});
+  if(!taken)s+='<option value="'+n+'"'+(n===sel?' selected':'')+'>Sí: cita #'+n+'</option>';
+ }
+ return s;
+}
+function fillCita(){var v=$('cita').value;$('cita').innerHTML=citaOpts('',null);if(v)$('cita').value=v}
+function setCitas(p,nums){return save(p.id,{cita:nums.join(',')})}
+var cview='all';
+function renderCitas(){
+ var c=citaInfo(),n=c.filter(function(x){return x.done}).length,o=c.filter(function(x){return x.own&&x.place}).length;
+ $('cn').textContent=n;
+ $('cd').textContent=n>=100?'🎉 ¡Completaron las 100 citas!':'Faltan '+(100-n)+' · '+o+' de las 20 citas propias elegidas';
+ [].forEach.call($('cbar').children,function(b){b.className=b.dataset.cv===cview?'on':''});
+ var l=c.filter(function(x){return cview==='all'||(cview==='done'&&x.done)||(cview==='todo'&&!x.done)||(cview==='own'&&x.own)});
+ $('clist').innerHTML=l.length?l.map(function(x){
+  var sub;
+  if(x.own)sub=x.place?(x.done?'✓ Cumplida · '+esc(x.place.zone||'Visitado'):'🧭 Plan pendiente'+(x.place.zone?' · '+esc(x.place.zone):'')):'Toca para elegir un plan';
+  else sub=x.done?'✓ '+x.places.slice(0,2).map(function(p){return esc(p.name)}).join(', ')+(x.places.length>2?' y '+(x.places.length-2)+' más':''):'Pendiente';
+  return '<div class="ci'+(x.done?' done':'')+(x.own?' own':'')+'" data-c="'+x.n+'"><div class="no" data-c="'+x.n+'">'+x.n+'</div><div class="tx" data-c="'+x.n+'">'+esc(x.text)+'<small data-c="'+x.n+'">'+sub+'</small></div></div>';
+ }).join(''):'<div class="empty">Nada por aquí todavía.</div>';
+}
+$('cbar').onclick=function(e){var v=e.target.dataset.cv;if(!v)return;cview=v;renderCitas()};
+$('clist').onclick=function(e){var n=e.target.dataset.c||(e.target.closest&&e.target.closest('[data-c]')&&e.target.closest('[data-c]').dataset.c);if(n)openCita(+n)};
+function openCita(n){
+ var x=citaInfo()[n-1];
+ if(x.own){
+  var p=x.place;
+  if(p){
+   var plan=st(p)==='plan';
+   ov('<h3>Cita #'+n+'</h3><div class="n">'+esc(p.name)+'</div><div class="d">'+(plan?'🧭 Plan pendiente':'✓ Ya la cumplieron')+(p.zone?' · '+esc(p.zone):'')+'</div>'+(plan?'<button type="button" id="c_ok" style="background:var(--pl)">✓ Ya fuimos</button>':'')+'<button type="button" id="c_ed" style="background:var(--bd);color:var(--tx)">✏️ Editar el lugar</button><button type="button" id="c_rm" style="background:var(--bd);color:var(--tx)">Quitar de las 100 citas</button><button type="button" id="c_c" style="background:none;color:var(--mu)">Cerrar</button>');
+   if($('c_ok'))$('c_ok').onclick=function(){save(p.id,{status:'vis',date:today()});closeOv();render()};
+   $('c_ed').onclick=function(){closeOv();openEdit(p.id)};
+   $('c_rm').onclick=function(){setCitas(p,citasOf(p).filter(function(k){return k!==n}));closeOv();render()};
+  }else{
+   var pend=places.filter(function(q){return st(q)==='plan'&&!citasOf(q).some(function(k){return k>80})});
+   ov('<h3>Cita #'+n+'</h3><div class="d">Esta cita es de ustedes. Elijan un plan de 🧭 Por visitar o creen uno nuevo.</div>'+(pend.length?'<div class="l">Elegir un plan que ya tienen</div><select id="c_sel">'+pend.map(function(q){return '<option value="'+esc(q.id)+'">'+esc(q.name)+'</option>'}).join('')+'</select><button type="button" id="c_use">Usar este plan</button>':'')+'<button type="button" id="c_new" style="background:var(--pl)">➕ Crear un plan nuevo para la cita #'+n+'</button><button type="button" id="c_c" style="background:none;color:var(--mu)">Cerrar</button>');
+   if($('c_use'))$('c_use').onclick=function(){var q=places.filter(function(r){return r.id===$('c_sel').value})[0];if(q){setCitas(q,citasOf(q).concat([n]));closeOv();render()}};
+   $('c_new').onclick=function(){closeOv();tab='plan';$('date').value='';render();$('cita').value=String(n);$('name').focus();window.scrollTo(0,0)};
+  }
+ }else{
+  var vis=places.filter(function(q){return st(q)==='vis'&&x.places.indexOf(q)<0});
+  ov('<h3>Cita #'+n+'</h3><div class="n">'+esc(x.text)+'</div><div class="d">'+(x.done?'✓ Ya la cumplieron':'Aún pendiente. Se marca sola al subir una salida parecida.')+'</div>'+x.places.map(function(q){return '<div class="row"><span>📸 '+esc(q.name)+(q.date?' · '+esc(fmt(q.date)):'')+'</span>'+(x.manual.indexOf(q)>=0?'<button type="button" data-un="'+esc(q.id)+'">Quitar</button>':'')+'</div>'}).join('')+(vis.length?'<div class="l">Vincular una salida que ya subieron</div><select id="c_sel">'+vis.map(function(q){return '<option value="'+esc(q.id)+'">'+esc(q.name)+'</option>'}).join('')+'</select><button type="button" id="c_use">Contar esta salida</button>':'<div class="d">Cuando suban una salida podrán vincularla aquí.</div>')+'<button type="button" id="c_c" style="background:none;color:var(--mu)">Cerrar</button>');
+  if($('c_use'))$('c_use').onclick=function(){var q=places.filter(function(r){return r.id===$('c_sel').value})[0];if(q){setCitas(q,citasOf(q).concat([n]));closeOv();render()}};
+  [].forEach.call(document.querySelectorAll('#ov [data-un]'),function(b){b.onclick=function(){var q=places.filter(function(r){return r.id===b.dataset.un})[0];if(q){setCitas(q,citasOf(q).filter(function(k){return k!==n}));closeOv();render()}}});
+ }
+ $('c_c').onclick=closeOv;
+}
 
 /* ----- arranque ----- */
 var bar0=$('bar').onclick;

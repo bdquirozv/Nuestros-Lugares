@@ -38,3 +38,12 @@ Siempre hay que crear una **nueva versión** de la implementación (mismo menú)
 - Videos: hasta **20 MB** por archivo.
 - Las fotos quedan en Drive con "cualquiera con el enlace puede ver"; los enlaces solo se obtienen entrando con la clave.
 - Se bloquea 10 minutos después de 10 claves incorrectas.
+
+
+## Actualizar el servidor de Google cuando cambie Code.gs
+
+Si `apps-script/Code.gs` cambia (por ejemplo, al agregar las 100 citas):
+1. Abre tu hoja → Extensiones → Apps Script, borra el código y pega el nuevo `Code.gs`.
+2. Vuelve a poner tu clave en `const CLAVE`.
+3. Implementar → Administrar implementaciones → ✏️ → Versión: **Nueva versión** → Implementar.
+   La URL `/exec` no cambia. La hoja agrega sola la columna `cita`.
