@@ -16,7 +16,7 @@ const EDITABLES = ['name', 'zone', 'date', 'status', 'fav', 'tipo', 'dist', 'src
 const MAX_BYTES = 30 * 1024 * 1024;
 
 function doGet() {
-  return salida_({ ok: true, mensaje: 'Nuestros lugares: el servidor funciona' });
+  return salida_({ ok: true, mensaje: 'Nuestros lugares: el servidor funciona', version: 'citas-2' });
 }
 
 function doPost(e) {
