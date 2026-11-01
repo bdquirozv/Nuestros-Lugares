@@ -198,7 +198,8 @@ function save(id,patch,fo){
  var p=places.filter(function(q){return q.id===id})[0];if(!p)return Promise.resolve();
  for(var k in patch)p[k]=patch[k];
  if(!live)return Promise.resolve();
- return api('update',{id:id,patch:patch,file:fo||null}).then(function(r){if(r&&r.row)merge(r.row)}).catch(function(err){alert('No se pudo guardar: '+(err&&err.message||err));load()});
+ return api('update',{id:id,patch:patch,file:fo||null})
+ .then(function(r){if(r&&r.row){if('cita' in patch&&!('cita' in r.row))alert('⚠️ No se guardó la cita: falta actualizar el Apps Script (ver README).');merge(r.row)}}).catch(function(err){alert('No se pudo guardar: '+(err&&err.message||err));load()});
 }
 
 function renderList(){
@@ -308,7 +309,7 @@ $('f').onsubmit=async function(e){
  var rec={name:$('name').value.trim(),zone:$('zone').value,date:$('date').value,status:tab,fav:false,tipo:tab==='plan'?$('tipo').value:'',dist:tab==='plan'?$('dist').value:'',src:normSrc($('src').value),cita:tab==='plan'?$('cita').value:$('citav').value};
  try{
   var fo=file?await prep(file):null;
-  if(live){var r=await api('create',{rec:rec,file:fo});merge(r.row)}
+  if(live){var r=await api('create',{rec:rec,file:fo});if(rec.cita&&!('cita' in r.row))alert('⚠️ El lugar se guardó, pero la cita no: falta actualizar el Apps Script (ver README).');merge(r.row)}
   else{rec.id='l'+Date.now();if(file){rec.url=URL.createObjectURL(file);rec.mime=file.type}places.push(rec);render()}
   $('f').reset();file=null;fillCita();$('date').value=tab==='plan'?'':today();$('hint').textContent=tab==='plan'?'🖼️ Foto de referencia (opcional)':'📷 Toca para elegir una foto o video';
  }catch(err){alert('No se pudo guardar: '+(err&&err.message||err))}
@@ -460,7 +461,7 @@ function merge(row){
  render();
 }
 async function load(){
- try{var r=await api('list');var rows=r.rows||[];cover=rows.filter(function(x){return x.name===COVER})[0]||null;places=rows.filter(function(x){return x.name!==COVER});render();setNote('')}
+ try{var r=await api('list');var rows=r.rows||[];if(rows.length&&!('cita' in rows[0])){alert('⚠️ El servidor de Google está desactualizado: las citas no se guardarán. Pega el nuevo Code.gs en Apps Script y crea una nueva versión de la implementación (ver README).')}cover=rows.filter(function(x){return x.name===COVER})[0]||null;places=rows.filter(function(x){return x.name!==COVER});render();setNote('')}
  catch(err){if(err.message!=='clave')setNote('⚠️ '+err.message)}
 }
 
