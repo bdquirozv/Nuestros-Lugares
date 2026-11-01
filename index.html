@@ -4,6 +4,7 @@
 <title>Nuestros lugares</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>try{var _t=localStorage.getItem('lugares_tema');if(_t)document.documentElement.setAttribute('data-theme',_t)}catch(e){}</script>
 <style>
 :root{color-scheme:light;box-sizing:border-box;--bg:#f3efe8;--card:#fffdf9;--tx:#1c1917;--mu:#78716c;--ac:#0f5c4a;--bd:#e4ddd0;--pl:#8c1c3e}
 *{box-sizing:border-box}
@@ -97,7 +98,29 @@ input[type=password],input[type=url]{width:100%;padding:11px;border:1px solid va
 .badge{display:inline-block;font-size:11px;background:var(--bg);border:1px solid var(--bd);padding:2px 8px;border-radius:99px!important;margin:5px 4px 0 0;color:var(--ac);font-weight:600}
 .badge.pl{color:var(--pl)}
 .dlg .row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px}.dlg .row button{padding:6px 10px;font-size:12px;background:var(--bd);color:var(--tx)}
+
+:root[data-theme="oscuro"]{color-scheme:dark;--bg:#0f1a16;--card:#17251f;--tx:#efe9df;--mu:#9bb0a6;--ac:#1f8a6c;--bd:#26382f;--pl:#c0406a}
+:root[data-theme="guinda"]{--bg:#fdf2f4;--card:#ffffff;--tx:#3b1f2b;--mu:#9a7684;--ac:#9b1b3f;--bd:#f3d9df;--pl:#2f6f5e}
+:root[data-theme="oceano"]{--bg:#eef5f9;--card:#ffffff;--tx:#12303f;--mu:#5f7f90;--ac:#1e5f8c;--bd:#d3e3ec;--pl:#c2476b}
+:root[data-theme="lavanda"]{--bg:#f5f3ff;--card:#ffffff;--tx:#2a2545;--mu:#7d77a0;--ac:#6b4fd8;--bd:#e0dcf7;--pl:#d6457a}
+:root[data-theme="noche"]{color-scheme:dark;--bg:#15111f;--card:#211a30;--tx:#f5edf7;--mu:#a99bb8;--ac:#c2366f;--bd:#36294a;--pl:#0d8577}
+.hero{position:relative;margin:-20px -16px 46px}
+.cover{height:190px;background:linear-gradient(135deg,var(--ac),var(--pl));overflow:hidden}
+.cover img{width:100%;height:100%;object-fit:cover;display:block}
+.mono{position:absolute;left:50%;bottom:-36px;transform:translateX(-50%);width:78px;height:78px;border-radius:50%!important;background:var(--card);border:3px solid var(--bg);box-shadow:0 2px 12px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;gap:3px;font-weight:700;font-size:26px;color:var(--ac);font-family:'Cormorant Garamond',Georgia,serif!important}
+.mono i{font-style:normal;color:var(--pl);font-size:15px}
+.hbtn{position:absolute;top:10px;background:rgba(0,0,0,.5);color:#fff;padding:7px 12px;font-size:12px;font-weight:500;border-radius:99px!important}
+#covbtn{left:10px}#covdel{left:auto;right:56px}#themebtn{right:10px;font-size:15px;padding:5px 10px}
+.hero~h1,.hero~.sub{text-align:center}.hero~h1{margin-top:0}
+.thm{display:grid;gap:8px}
+.tbtn{background:var(--bg);color:var(--tx);border:1px solid var(--bd);display:flex;align-items:center;gap:12px;text-align:left;font-weight:500}
+.tbtn.on{border-color:var(--ac);box-shadow:0 0 0 2px var(--ac)}
+.sw{width:54px;height:30px;border-radius:6px!important;display:flex;align-items:center;justify-content:center;gap:5px;border:1px solid var(--bd)}.sw i{width:12px;height:12px;border-radius:50%}
+#cq{margin-bottom:10px}
 </style></head><body><main>
+<div class="hero"><div class="cover" id="cover"></div><div class="mono">B<i>♥</i>Y</div>
+<button type="button" class="hbtn" id="covbtn">📷 Agregar portada</button><button type="button" class="hbtn" id="covdel" hidden>✕ Quitar</button><button type="button" class="hbtn" id="themebtn" title="Cambiar estilo">🎨</button>
+<input id="covfile" type="file" accept="image/*" hidden></div>
 <h1>Nuestros lugares 💕</h1>
 <p class="sub">Lo que ya visitamos, lo que queremos visitar y qué nos falta por conocer.</p>
 <div class="prog"><div class="pbar"><i id="pfill"></i></div><div class="ptxt" id="ptxt"></div></div>
@@ -108,6 +131,7 @@ input[type=password],input[type=url]{width:100%;padding:11px;border:1px solid va
  <input id="name" type="text" placeholder="Nombre del lugar" required>
  <div class="l">Zona (para el mapa)</div><select id="zone" required></select>
  <div id="planf" hidden><div class="row2"><div><div class="l">Tipo de plan</div><select id="tipo"></select></div><div><div class="l">¿Qué tan cerca?</div><select id="dist"></select></div></div><div class="l">¿Será una de nuestras 100 citas? (opcional)</div><select id="cita"></select></div>
+ <div id="visc"><div class="l">¿Cumple alguna de las 100 citas? (opcional)</div><select id="citav"></select></div>
  <div class="l" id="dl">Fecha de la salida</div><input id="date" type="date">
  <div class="l">¿De dónde sacamos la idea? (opcional)</div><input id="src" type="text" inputmode="url" placeholder="Link de TikTok, Instagram…">
  <button class="go" id="go" type="submit">Guardar lugar</button>
@@ -126,12 +150,13 @@ input[type=password],input[type=url]{width:100%;padding:11px;border:1px solid va
 </div>
 <div id="citasview" hidden>
  <div class="mapbox cbig"><b id="cn">0</b><span> / 100</span><div class="d" id="cd"></div></div>
+ <input id="cq" type="text" placeholder="🔍 Buscar una cita (ej. cine, playa, 85)…" autocomplete="off">
  <div class="bar" id="cbar"><button data-cv="all" class="on">Todas</button><button data-cv="todo">Pendientes</button><button data-cv="done">✓ Hechas</button><button data-cv="own">💡 Nuestras</button></div>
  <div class="cl" id="clist"></div>
  <p class="note">Las citas 1–80 se completan solas cuando suben una salida parecida. Las 81–100 son suyas: elíjanlas desde 🧭 Por visitar.</p>
 </div>
 <div id="gamesview" hidden>
- <div class="bar" style="margin-top:0" id="gmode"><button data-g="plan" class="on">🎡 Plan</button><button data-g="tipo">🎯 Tipo</button><button data-g="reto">🎲 Reto</button></div>
+ <div class="bar" style="margin-top:0" id="gmode"><button data-g="plan" class="on">🎡 Plan</button><button data-g="tipo">🎯 Tipo</button><button data-g="comida">🍽️ Comida</button><button data-g="reto">🎲 Reto</button></div>
  <div class="mapbox wheelbox" id="wheelbox">
   <div id="gfilters">
    <div class="l">Tipo</div><div class="chips" id="gtipos" style="margin-bottom:10px"></div>
@@ -240,7 +265,7 @@ function render(){
  [].forEach.call($('tabs').children,function(b){b.className=b.dataset.t===tab?'on':''});
  if(m)renderMap();else if(g){if(spinning)drawWheel();else renderGames(false)}else if(c)renderCitas();else{
   $('hint').firstChild&&0;
-  $('planf').hidden=tab!=='plan';$('tipo').required=tab==='plan';$('dist').required=tab==='plan';
+  $('planf').hidden=tab!=='plan';$('visc').hidden=tab!=='vis';$('tipo').required=tab==='plan';$('dist').required=tab==='plan';
   $('dl').textContent=tab==='plan'?'Fecha tentativa (opcional)':'Fecha de la salida';
   $('go').textContent=tab==='plan'?'Guardar plan':'Guardar lugar';
   if(!file)$('hint').textContent=tab==='plan'?'🖼️ Foto de referencia (opcional)':'📷 Toca para elegir una foto o video';
@@ -280,7 +305,7 @@ $('f').onsubmit=async function(e){
  e.preventDefault();
  if(tab==='vis'&&!file){alert('Elige una foto o video primero');return}
  $('go').disabled=true;$('go').textContent='Subiendo…';
- var rec={name:$('name').value.trim(),zone:$('zone').value,date:$('date').value,status:tab,fav:false,tipo:tab==='plan'?$('tipo').value:'',dist:tab==='plan'?$('dist').value:'',src:normSrc($('src').value),cita:tab==='plan'?$('cita').value:''};
+ var rec={name:$('name').value.trim(),zone:$('zone').value,date:$('date').value,status:tab,fav:false,tipo:tab==='plan'?$('tipo').value:'',dist:tab==='plan'?$('dist').value:'',src:normSrc($('src').value),cita:tab==='plan'?$('cita').value:$('citav').value};
  try{
   var fo=file?await prep(file):null;
   if(live){var r=await api('create',{rec:rec,file:fo});merge(r.row)}
@@ -294,7 +319,9 @@ $('grid').onchange=function(e){var d=e.target.dataset;if(d.mt)save(d.mt,{tipo:e.
 var gmode='plan',gtipo='',rot=0,spinning=false,winner=null;
 var COLS=['#0f5c4a','#8c1c3e','#1e3a5f','#b8860b','#2f7d5f','#6b1730','#274c77','#3d3d3d'];
 function trunc(s,n){s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s}
+var FOODS=[['mariscos','🦐 Mariscos'],['brasa','🍗 Pollo a la brasa'],['pizza','🍕 Pizza'],['hamburguesa','🍔 Hamburguesa'],['ceviche','🐟 Ceviche'],['sushi','🍣 Sushi / Nikkei'],['chifa','🥡 Chifa'],['criolla','🥘 Comida criolla'],['parrilla','🥩 Parrilla'],['pasta','🍝 Pastas'],['tacos','🌮 Tacos'],['postres','🍰 Postres']];
 function wheelItems(){
+ if(gmode==='comida')return FOODS.map(function(f){return {label:f[1],id:f[0]}});
  if(gmode==='tipo')return TIPOS.map(function(t){return {label:t[1],id:t[0]}});
  var d=$('gdist').value;
  return places.filter(function(p){return st(p)==='plan'&&(!gtipo||p.tipo===gtipo)&&(!d||p.dist===d)}).map(function(p){return {label:p.name,id:p.id}});
@@ -325,7 +352,8 @@ function renderGames(reset){
  if(reset){winner=null;$('res').textContent='';$('act').hidden=true}
  drawWheel();
  var n=wheelItems().length,pend=places.filter(function(p){return st(p)==='plan'}),inc=pend.filter(function(p){return !p.tipo||!p.dist}).length,msg;
- if(gmode==='tipo')msg='Gira para decidir qué tipo de salida toca.';
+ if(gmode==='comida')msg='Gira para decidir qué van a comer 🍽️';
+ else if(gmode==='tipo')msg='Gira para decidir qué tipo de salida toca.';
  else if(!pend.length)msg='Aún no tienen planes. Agrégalos en 🧭 Por visitar y aparecerán en la ruleta.';
  else if(!n)msg='Ningún plan con ese filtro. Prueba con otro tipo o distancia.';
  else msg=n+(n>1?' planes en la ruleta':' plan en la ruleta');
@@ -336,7 +364,7 @@ function renderGames(reset){
 function showWin(){
  $('res').textContent='🎉 '+winner.label;
  $('act').hidden=false;
- $('act').textContent=gmode==='plan'?'✓ Ya fuimos':'Ruleta con planes de este tipo';
+ $('act').textContent=gmode==='plan'?'✓ Ya fuimos':gmode==='comida'?'Ver planes de comida':winner.id==='comer'?'🍽️ ¿Y qué comemos?':'Ruleta con planes de este tipo';
 }
 $('gmode').onclick=function(e){var g=e.target.dataset.g;if(!g||spinning)return;gmode=g;renderGames(true)};
 $('gtipos').onclick=function(e){var g=e.target.dataset.gt;if(g===undefined||spinning)return;gtipo=g;renderGames(true)};
@@ -344,6 +372,8 @@ $('gdist').onchange=function(){if(!spinning)renderGames(true)};
 $('act').onclick=function(){
  if(!winner||spinning)return;
  if(gmode==='plan'){save(winner.id,{status:'vis',date:today()});winner=null;$('res').textContent='¡Pasó a Visitados! Súbele su foto 📸';$('act').hidden=true;renderGames(false)}
+ else if(gmode==='comida'){gmode='plan';gtipo='comer';renderGames(true)}
+ else if(winner.id==='comer'){gmode='comida';renderGames(true)}
  else{gmode='plan';gtipo=winner.id;renderGames(true)}
 };
 $('spin').onclick=function(){
@@ -422,13 +452,15 @@ async function api(action,data){
  }
  return j;
 }
+var COVER='__portada__',cover=null;
 function merge(row){
+ if(row.name===COVER){cover=row;render();return}
  var i=-1;for(var k=0;k<places.length;k++)if(places[k].id===row.id){i=k;break}
  if(i>=0)places[i]=row;else places.push(row);
  render();
 }
 async function load(){
- try{var r=await api('list');places=r.rows||[];render();setNote('')}
+ try{var r=await api('list');var rows=r.rows||[];cover=rows.filter(function(x){return x.name===COVER})[0]||null;places=rows.filter(function(x){return x.name!==COVER});render();setNote('')}
  catch(err){if(err.message!=='clave')setNote('⚠️ '+err.message)}
 }
 
@@ -461,14 +493,14 @@ function askLogin(msg){
 function openEdit(id){
  var p=places.filter(function(q){return q.id===id})[0];if(!p)return;
  var plan=st(p)==='plan';
- ov('<h3>Editar '+(plan?'plan':'lugar')+'</h3><input id="e_name" type="text" value="'+esc(p.name)+'"><div class="l">Zona</div><select id="e_zone"></select><div class="l">Fecha'+(plan?' tentativa (opcional)':' de la salida')+'</div><input id="e_date" type="date" value="'+esc(p.date||'')+'">'+(plan?'<div class="row2"><div><div class="l">Tipo</div><select id="e_tipo"></select></div><div><div class="l">¿Qué tan cerca?</div><select id="e_dist"></select></div></div><div class="l">¿Una de nuestras 100 citas?</div><select id="e_cita"></select>':'')+'<div class="l">¿De dónde sacamos la idea? (opcional)</div><input id="e_src" type="text" inputmode="url" value="'+esc(p.src||'')+'" placeholder="Link de TikTok, Instagram…"><div class="l">Cambiar foto o video (opcional)</div><input id="e_photo" type="file" accept="image/*,video/*"><div class="row2"><button type="button" id="e_c" style="background:var(--bd);color:var(--tx)">Cancelar</button><button type="button" id="e_ok">Guardar</button></div>');
+ ov('<h3>Editar '+(plan?'plan':'lugar')+'</h3><input id="e_name" type="text" value="'+esc(p.name)+'"><div class="l">Zona</div><select id="e_zone"></select><div class="l">Fecha'+(plan?' tentativa (opcional)':' de la salida')+'</div><input id="e_date" type="date" value="'+esc(p.date||'')+'">'+(plan?'<div class="row2"><div><div class="l">Tipo</div><select id="e_tipo"></select></div><div><div class="l">¿Qué tan cerca?</div><select id="e_dist"></select></div></div><div class="l">¿Una de nuestras 100 citas?</div><select id="e_cita"></select>':'<div class="l">¿Cumple alguna de las 100 citas?</div><select id="e_citav"></select>')+'<div class="l">¿De dónde sacamos la idea? (opcional)</div><input id="e_src" type="text" inputmode="url" value="'+esc(p.src||'')+'" placeholder="Link de TikTok, Instagram…"><div class="l">Cambiar foto o video (opcional)</div><input id="e_photo" type="file" accept="image/*,video/*"><div class="row2"><button type="button" id="e_c" style="background:var(--bd);color:var(--tx)">Cancelar</button><button type="button" id="e_ok">Guardar</button></div>');
  $('e_zone').innerHTML=$('zone').innerHTML;$('e_zone').value=p.zone||'';
- if(plan){$('e_tipo').innerHTML=opts(TIPOS,p.tipo,'Elige…');$('e_dist').innerHTML=opts(DIST,p.dist,'Elige…');$('e_cita').innerHTML=citaOpts(p.id,citasOf(p).filter(function(n){return n>80})[0])}
+ if(plan){$('e_tipo').innerHTML=opts(TIPOS,p.tipo,'Elige…');$('e_dist').innerHTML=opts(DIST,p.dist,'Elige…');$('e_cita').innerHTML=citaOpts(p.id,citasOf(p).filter(function(n){return n>80})[0])}else{$('e_citav').innerHTML=citaOptsVis(citasOf(p)[0],p.id)}
  $('e_c').onclick=closeOv;
  $('e_ok').onclick=async function(){
   var nm=$('e_name').value.trim();if(!nm){alert('Ponle un nombre');return}
   var patch={name:nm,zone:$('e_zone').value,date:$('e_date').value,src:normSrc($('e_src').value)};
-  if(plan){patch.tipo=$('e_tipo').value;patch.dist=$('e_dist').value;patch.cita=citasOf(p).filter(function(n){return n<=80}).concat($('e_cita').value?[+$('e_cita').value]:[]).join(',')}
+  if(plan){patch.tipo=$('e_tipo').value;patch.dist=$('e_dist').value;patch.cita=citasOf(p).filter(function(n){return n<=80}).concat($('e_cita').value?[+$('e_cita').value]:[]).join(',')}else{var sel=+$('e_citav').value||0,shown=citasOf(p)[0],nums=citasOf(p).filter(function(n){return n!==shown});if(sel&&nums.indexOf(sel)<0)nums.push(sel);patch.cita=nums.join(',')}
   $('e_ok').disabled=true;$('e_ok').textContent='Guardando…';
   try{
    var f=$('e_photo').files[0],fo=f?await prep(f):null;
@@ -627,7 +659,14 @@ function citaOpts(exceptId,sel){
  }
  return s;
 }
-function fillCita(){var v=$('cita').value;$('cita').innerHTML=citaOpts('',null);if(v)$('cita').value=v}
+function citaOptsVis(sel,exceptId){
+ var c=citaInfo(),s='<option value="">Ninguna (se detecta sola si coincide)</option><optgroup label="Ideas 1–80">';
+ c.slice(0,80).forEach(function(x){s+='<option value="'+x.n+'"'+(x.n===sel?' selected':'')+'>'+(x.done?'✓ ':'')+x.n+'. '+esc(trunc(x.text,42))+'</option>'});
+ s+='</optgroup><optgroup label="Nuestras 81–100 (libres)">';
+ c.slice(80).forEach(function(x){if(!x.place||x.place.id===exceptId)s+='<option value="'+x.n+'"'+(x.n===sel?' selected':'')+'>Cita #'+x.n+' (nuestra)</option>'});
+ return s+'</optgroup>';
+}
+function fillCita(){var v=$('cita').value,w=$('citav').value;$('cita').innerHTML=citaOpts('',null);if(v)$('cita').value=v;$('citav').innerHTML=citaOptsVis(null);if(w)$('citav').value=w}
 function setCitas(p,nums){return save(p.id,{cita:nums.join(',')})}
 var cview='all';
 function renderCitas(){
@@ -635,14 +674,21 @@ function renderCitas(){
  $('cn').textContent=n;
  $('cd').textContent=n>=100?'🎉 ¡Completaron las 100 citas!':'Faltan '+(100-n)+' · '+o+' de las 20 citas propias elegidas';
  [].forEach.call($('cbar').children,function(b){b.className=b.dataset.cv===cview?'on':''});
- var l=c.filter(function(x){return cview==='all'||(cview==='done'&&x.done)||(cview==='todo'&&!x.done)||(cview==='own'&&x.own)});
+ var q=norm($('cq').value).split(' ').filter(Boolean);
+ var l=c.filter(function(x){
+  if(!(cview==='all'||(cview==='done'&&x.done)||(cview==='todo'&&!x.done)||(cview==='own'&&x.own)))return false;
+  if(!q.length)return true;
+  var h=norm(x.n+' '+x.text+' '+x.places.map(function(p){return p.name}).join(' '));
+  return q.every(function(w){return h.indexOf(w)>=0});
+ });
  $('clist').innerHTML=l.length?l.map(function(x){
   var sub;
   if(x.own)sub=x.place?(x.done?'✓ Cumplida · '+esc(x.place.zone||'Visitado'):'🧭 Plan pendiente'+(x.place.zone?' · '+esc(x.place.zone):'')):'Toca para elegir un plan';
   else sub=x.done?'✓ '+x.places.slice(0,2).map(function(p){return esc(p.name)}).join(', ')+(x.places.length>2?' y '+(x.places.length-2)+' más':''):'Pendiente';
   return '<div class="ci'+(x.done?' done':'')+(x.own?' own':'')+'" data-c="'+x.n+'"><div class="no" data-c="'+x.n+'">'+x.n+'</div><div class="tx" data-c="'+x.n+'">'+esc(x.text)+'<small data-c="'+x.n+'">'+sub+'</small></div></div>';
- }).join(''):'<div class="empty">Nada por aquí todavía.</div>';
+ }).join(''):'<div class="empty">'+(q.length?'No hay citas con esa búsqueda.':'Nada por aquí todavía.')+'</div>';
 }
+$('cq').oninput=function(){renderCitas()};
 $('cbar').onclick=function(e){var v=e.target.dataset.cv;if(!v)return;cview=v;renderCitas()};
 $('clist').onclick=function(e){var n=e.target.dataset.c||(e.target.closest&&e.target.closest('[data-c]')&&e.target.closest('[data-c]').dataset.c);if(n)openCita(+n)};
 function openCita(n){
@@ -674,7 +720,35 @@ function openCita(n){
 var bar0=$('bar').onclick;
 $('bar').onclick=function(e){if(e.target.dataset.v==='show'){openShow();return}bar0(e)};
 var render0=render;
-render=function(){render0();updProg()};
+render=function(){render0();updProg();renderHero()};
+function renderHero(){
+ $('cover').innerHTML=cover&&hasMedia(cover)?'<img referrerpolicy="no-referrer" alt="" src="'+esc(cover.fileId?thumb(cover.fileId,1600):cover.url)+'">':'';
+ $('covbtn').textContent=cover?'📷 Cambiar portada':'📷 Agregar portada';$('covdel').hidden=!cover;
+}
+$('covbtn').onclick=function(){$('covfile').value='';$('covfile').click()};
+$('covfile').onchange=async function(e){
+ var f=e.target.files[0];if(!f)return;
+ try{
+  setNote('Subiendo portada…');
+  if(live){var fo=await prep(f),r=cover?await api('update',{id:cover.id,patch:{},file:fo}):await api('create',{rec:{name:COVER,status:'vis'},file:fo});merge(r.row)}
+  else{cover={id:'cover',name:COVER,url:URL.createObjectURL(f)};renderHero()}
+  setNote('');
+ }catch(err){setNote('');alert('No se pudo subir la portada: '+(err&&err.message||err))}
+};
+$('covdel').onclick=function(){
+ if(!cover||!confirm('¿Quitar la portada?'))return;
+ var id=cover.id;cover=null;renderHero();
+ if(live)api('delete',{id:id}).catch(function(){alert('No se pudo quitar. Intenta de nuevo.');load()});
+};
+/* ----- estilos de color ----- */
+var THEMES=[['','Esmeralda y vino',['#0f5c4a','#8c1c3e','#f3efe8']],['oscuro','Modo oscuro',['#1f8a6c','#c0406a','#0f1a16']],['guinda','Romántico guinda',['#9b1b3f','#2f6f5e','#fdf2f4']],['oceano','Océano azul',['#1e5f8c','#c2476b','#eef5f9']],['lavanda','Lavanda',['#6b4fd8','#d6457a','#f5f3ff']],['noche','Noche rosa',['#c2366f','#0d8577','#15111f']]];
+function setTheme(k){if(k)document.documentElement.setAttribute('data-theme',k);else document.documentElement.removeAttribute('data-theme');lsSet('lugares_tema',k||null);render()}
+$('themebtn').onclick=function(){
+ var cur=document.documentElement.getAttribute('data-theme')||'';
+ ov('<h3>Elige su estilo 🎨</h3><div class="thm">'+THEMES.map(function(x){return '<button type="button" class="tbtn'+(x[0]===cur?' on':'')+'" data-th="'+x[0]+'"><span class="sw" style="background:'+x[2][2]+'"><i style="background:'+x[2][0]+'"></i><i style="background:'+x[2][1]+'"></i></span>'+x[1]+'</button>'}).join('')+'</div><button type="button" id="th_c" style="background:none;color:var(--mu)">Cerrar</button>');
+ $('th_c').onclick=closeOv;
+ [].forEach.call(document.querySelectorAll('#ov [data-th]'),function(b){b.onclick=function(){setTheme(b.dataset.th);closeOv()}});
+};
 $('lk1').onclick=function(){load()};
 $('lk2').onclick=function(){clave='';authed=false;lsSet('lugares_clave',null);places=[];render();askLogin()};
 render();
